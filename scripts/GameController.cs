@@ -4,18 +4,19 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour {
   public static GameController controller;
-  public float movementVelocity;
+  public delegate void DelegateMovement(Vector3 movement);
+  public static event DelegateMovement MovePlayerEvent;
+  public float playerMovementVelocity;
 
   void Start() {
-    movementVelocity = 5.0f;
+    playerMovementVelocity = 5.0f;
   }
 
   void FixedUpdate() {
     float xAxis = Input.GetAxis("xAxis"); // d(positive) - a(negative)
     float zAxis = Input.GetAxis("zAxis"); // w(positive) - s(negative)
-    Vector3 movement = new Vector3(xAxis, 0.0f, zAxis) * movementVelocity;
-    this.GetComponent<Rigidbody>()
-        .MovePosition(this.transform.position + movement * Time.fixedDeltaTime);
+    Vector3 movement = new Vector3(xAxis, 0.0f, zAxis) * playerMovementVelocity;
+    MovePlayerEvent(movement);
   }
 
   void Awake() {

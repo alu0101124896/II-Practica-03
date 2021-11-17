@@ -4,21 +4,24 @@
 
 Primero asignamos cada tecla a su respectivo eje de movimiento dentro de "Project Settings", en la sección del "Imput Manager" y luego, en el script, declaramos una variable para almacenar la velocidad de movimiento, obtenemos la información de los ejes de entrada, la procesamos y se la aplicamos a la posición del objeto a través del Rigidbody para simular correctamente las físicas del mismo. También declaramos la variable "controller" para comprobar que solo es creada una instancia de este ya que solo puede existir una por cada ejecución del programa.
 
+Edit: Después de la entrega de la práctica he separado la recepción de las teclas de movimiento y la modificación de la posición del objeto en dos scripts diferentes haciendo uso de los delegados y eventos.
+
 ```cs
 public class GameController : MonoBehaviour {
   public static GameController controller;
-  public float movementVelocity;
+  public delegate void DelegateMovement(Vector3 movement);
+  public static event DelegateMovement MovePlayerEvent;
+  public float playerMovementVelocity;
 
   void Start() {
-    movementVelocity = 5.0f;
+    playerMovementVelocity = 5.0f;
   }
 
   void FixedUpdate() {
     float xAxis = Input.GetAxis("xAxis"); // d(positive) - a(negative)
     float zAxis = Input.GetAxis("zAxis"); // w(positive) - s(negative)
-    Vector3 movement = new Vector3(xAxis, 0.0f, zAxis) * movementVelocity;
-    this.GetComponent<Rigidbody>()
-        .MovePosition(this.transform.position + movement * Time.fixedDeltaTime);
+    Vector3 movement = new Vector3(xAxis, 0.0f, zAxis) * playerMovementVelocity;
+    MovePlayerEvent(movement);
   }
 
   void Awake() {
@@ -28,6 +31,25 @@ public class GameController : MonoBehaviour {
     } else if (controller != this) {
       Destroy(gameObject);
     }
+  }
+}
+```
+
+```cs
+public class Player : MonoBehaviour {
+  void Start() {
+    GameController.MovePlayerEvent += MovePlayer;
+  }
+
+  void FixedUpdate() {}
+
+  void MovePlayer(Vector3 movement) {
+    this.GetComponent<Rigidbody>()
+        .MovePosition(this.transform.position + movement * Time.fixedDeltaTime);
+  }
+
+  void OnDisable() {
+    GameController.MovePlayerEvent -= MovePlayer;
   }
 }
 ```
